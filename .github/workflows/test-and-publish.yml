@@ -1,0 +1,67 @@
+name: Test and Publish Chart
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/**'
+      - Chart.yaml
+  pull_request:
+    branches: [main]
+    paths:
+      - 'templates/**'
+      - Chart.yaml
+
+jobs:
+  test:
+    name: Test Chart Template
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Test Chart
+        shell: bash
+        run: |
+          helm template test-release . \
+            --values values-test.yaml
+      - name: Checkout Helm Repo
+        uses: actions/checkout@v4
+        with:
+          repository: lumunix/helm-repo
+          path: 'helm-repo'
+          ssh-key: '${{ secrets.HELM_REPO_SSH_KEY }}'
+      - name: Package Chart
+        shell: bash
+        env:
+          HELM_MAX_PACKAGE_SIZE: "${{ secrets.HELM_MAX_PACKAGE_SIZE }}"
+        run: |
+          sed -i -e "s/sha_to_be_replaced/${GITHUB_SHA:0:7}/g" Chart.yaml
+          cd helm-repo
+          helm package ..
+          helm repo index .
+          new_archive=$(git ls-files --other --exclude-standard | head -n 1)
+
+          if [ -z "$new_archive" ]; then
+            echo "::error::No new package file. Did you forget to bump up the chart version?"
+            exit 91
+          fi
+
+          archive_size=$(stat --printf="%s" "$new_archive")
+          max_size=${HELM_MAX_PACKAGE_SIZE:-100000}
+          if [ "$archive_size" -gt "$max_size" ]; then
+            echo "::error::Helm package $new_archive is bigger than limit. ($archive_size > $max_size)"
+            exit 90
+          fi
+
+          git config --local user.email "github-actions[bot]@${GITHUB_REPOSITORY/\//.}"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -am "Add ${new_archive}"
+      - name: Push Chart
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        shell: bash
+        run: |
+          cd helm-repo
+          git push
+          

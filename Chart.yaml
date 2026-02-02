@@ -1,0 +1,13 @@
+apiVersion: v2
+name: bookstack
+description: Wiki application made by Bookstack and MySQL
+type: application
+version: 1.0.0
+appVersion: "25.12"
+sources:
+  - https://github.com/lumunix/bookstack-helm
+maintainers:
+  - name: Lumunix
+    email: lumunix@icloud.com
+annotations:
+  sha: "sha_to_be_replaced"

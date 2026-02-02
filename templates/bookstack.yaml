@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ printf "%s-%s" .Release.Name "bookstack" }}
+  name: {{ printf "%s-%s" .Release.Name "bookstack" }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  strategy: 
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ printf "%s-%s" .Release.Name "bookstack" }}
+  template:
+    metadata:
+      labels:
+        app: {{ printf "%s-%s" .Release.Name "bookstack" }}
+    spec:
+      initContainers:
+      - image: busybox
+        name: volume-init
+        command:
+          - sh
+          - "-c"
+          - "rm -rf /mnt/uploads/lost+found && chown -R www-data:www-data /mnt/uploads && rm -rf /mnt/storage/lost+found && chown -R www-data:www-data /mnt/storage"
+        volumeMounts:
+        - mountPath: /mnt/uploads
+          name: bookstack-uploads
+        - mountPath: /mnt/storage
+          name: bookstack-storage
+      - image: mysql:5.7
+        name: bookstack-init
+        command: 
+          - bash
+          - "-c"
+          - "while ! mysqladmin ping --host={{ printf "%s-%s" .Release.Name "mysql" }} --password=secret; do sleep 5; done;"
+      containers:
+      - env:
+        - name: APP_KEY
+          value: {{ printf "%s" ( required "appKey is required" .Values.appKey ) | quote }}
+        - name: APP_URL
+          value: {{ printf "%s%s" "https://" ( required "appHost is required" .Values.appHost ) | quote }}
+        - name: DB_HOST
+          value: {{ printf "%s-%s:%s" .Release.Name "mysql" "3306" | quote }}
+        - name: DB_DATABASE
+          value: bookstack
+        - name: DB_USERNAME
+          value: bookstack
+        - name: DB_PASSWORD
+          value: secret
+        - name: APP_VIEWS_BOOKS
+          value: grid
+        - name: SESSION_LIFETIME
+          value: "1440"
+        - name: SESSION_SECURE_COOKIE
+          value: "true"
+        - name: STORAGE_TYPE
+          value: {{ default "local_secure" .Values.storageType | quote }}
+          {{- if .Values.azuread }}
+          {{- if .Values.azuread.enabled }}
+        - name: AZURE_TENANT
+          value: {{ required "azuread.tenantId is required" .Values.azuread.tenantId | quote }}
+        - name: AZURE_APP_ID
+          value: {{ required "azuread.appId is required" .Values.azuread.appId | quote }}
+        - name: AZURE_APP_SECRET
+          value: {{ required "azuread.appSecret is required" .Values.azuread.appSecret | quote }}
+        - name: AZURE_AUTO_REGISTER
+          value: "true"
+        - name: AZURE_AUTO_CONFIRM_EMAIL
+          value: "true"
+          {{- end }}
+          {{- end }}
+          {{- if .Values.smtp }}
+          {{- if .Values.smtp.enabled }}
+        - name: MAIL_HOST
+          value: {{ required "smtp.host is required" .Values.smtp.host | quote }}
+        - name: MAIL_PORT
+          value: {{ required "smtp.port is required" .Values.smtp.port | quote }}
+        - name: MAIL_USERNAME
+          value: {{ required "smtp.username is required" .Values.smtp.username | quote }}
+        - name: MAIL_PASSWORD
+          value: {{ required "smtp.password is required" .Values.smtp.password | quote }}
+        - name: MAIL_FROM
+          value: {{ required "smtp.fromAddress is required" .Values.smtp.fromAddress | quote }}
+        - name: MAIL_FROM_NAME
+          value: {{ required "smtp.fromName is required" .Values.smtp.fromName | quote }}
+        - name: MAIL_ENCRYPTION
+          value: "tls"
+          {{- end }}
+          {{- end }}
+        image: solidnerd/bookstack:25.12
+        name: bookstack
+        ports:
+        - containerPort: 8080
+          name: bookstack
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /var/www/bookstack/public/uploads
+          name: bookstack-uploads
+        - mountPath: /var/www/bookstack/storage/uploads
+          name: bookstack-storage
+      volumes:
+      - name: bookstack-uploads
+        persistentVolumeClaim:
+          claimName: {{ printf "%s-%s" .Release.Name "uploads" }}
+      - name: bookstack-storage
+        persistentVolumeClaim:
+          claimName: {{ printf "%s-%s" .Release.Name "storage" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ printf "%s-%s" .Release.Name "bookstack" }}
+  name: {{ printf "%s-%s" .Release.Name "bookstack" }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ printf "%s-%s" .Release.Name "bookstack" }}
+  type: ClusterIP
