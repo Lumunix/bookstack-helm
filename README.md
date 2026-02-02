@@ -17,7 +17,7 @@ helm upgrade --install <release_name> . --namespace=<namespace> --create-namespa
 ## Installation from Repository
 
 ```sh
-helm repo add lumunix https://lumunix.github.io/helm-repo/
+helm repo add bookstack-helm https://lumunix.github.io/bookstack-helm/
 helm repo update
-helm upgrade --install <release_name> lumunix/bookstack --namespace=<namespace> --values values.yaml
+helm upgrade --install <release_name> bookstack-helm/bookstack --namespace=<namespace> --values values.yaml
 ```
