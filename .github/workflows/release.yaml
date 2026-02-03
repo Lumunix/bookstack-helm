@@ -31,7 +31,37 @@ jobs:
         with:
           version: v3.14.4
 
+      - name: Ensure gh-pages branch exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            echo "Creating gh-pages branch..."
+            git checkout --orphan gh-pages
+            git reset --hard
+            echo "# Helm Chart Repo" > README.md
+            git add README.md
+            git commit -m "Initialize gh-pages"
+            git push origin gh-pages
+            git checkout -f main
+          else
+            echo "gh-pages branch already exists."
+          fi
+
+      - name: Show charts tree
+        run: |
+          echo "Repository tree:"
+          ls -la
+          echo "Charts dir (if exists):"
+          ls -la charts || true
+          echo "Chart.yaml files found:"
+          find charts -maxdepth 2 -name Chart.yaml -print || true
+
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
+        with:
+          charts_dir: charts
+          mark_as_latest: true
+          packages_with_index: false
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
