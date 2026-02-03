@@ -21,3 +21,4 @@ helm repo add bookstack-helm https://lumunix.github.io/bookstack-helm/
 helm repo update
 helm upgrade --install <release_name> bookstack-helm/bookstack --namespace=<namespace> --values values.yaml
 ```
+
