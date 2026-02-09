@@ -1,16 +1,76 @@
+# =============================================================================
+# BookStack Helm Chart - Default values
+# =============================================================================
+# Usage:
+#   helm upgrade --install my-wiki ./charts/bookstack -n my-namespace -f values.yaml
+#   Or override with --set appHost=wiki.example.com etc.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Required: Application URL and secret key
+# -----------------------------------------------------------------------------
 # appHost: www.yourwiki.com
+#   Public hostname for the wiki. Must match your Ingress and TLS certificate.
+#   Example: wiki.example.com (no https:// prefix)
+
 # appKey: base64:VGhpc0lzQW5FeGFtcGxlQXBwS2V5Q2hhbmdlVGhpcyE=
+#   Application encryption key. Must be a 32-byte value; often stored as base64.
+#   Generate: php -r "echo 'base64:'.base64_encode(random_bytes(32));"
+#   Required. Wrong or empty key can cause "An unknown error occurred" in the app.
+
+ingress:
+  enabled: true   # Set to false for port-forward only (no Ingress); then appHost can be omitted
+
+# appUrl: "http://localhost:8080"
+#   Optional. Full URL BookStack uses for links/redirects. If set, overrides
+#   the default (https:// + appHost, or http://localhost:8080 when no appHost).
+#   Use this for port-forward: e.g. appUrl: "http://localhost:8080".
+
 # allowHttp: false
+#   If "true", Ingress allows HTTP (e.g. for redirect to HTTPS). Default: false.
+
+# -----------------------------------------------------------------------------
+# Optional: Storage type (BookStack STORAGE_TYPE env)
+# -----------------------------------------------------------------------------
+# storageType: local_secure
+#   Default is local_secure. Change only if using another storage backend.
+
+# -----------------------------------------------------------------------------
+# Azure AD (Microsoft Entra ID) - Single Sign-On
+# -----------------------------------------------------------------------------
+# How to set up Azure AD:
+#   1. Azure Portal → Microsoft Entra ID → App registrations → New registration
+#   2. Set Redirect URI (Web): https://<appHost>/oidc/callback
+#   3. Note Application (client) ID → appId, Directory (tenant) ID → tenantId
+#   4. Certificates & secrets → New client secret → copy Value → appSecret
+#   5. API permissions: Microsoft Graph delegated (openid, User.Read, email)
+#   6. Set azuread.enabled=true and the values below (keep appSecret out of git!)
+# -----------------------------------------------------------------------------
 # azuread:
-#     enabled: true
-#     tenantId: 5a5e106e-7166-11ea-bc55-0242ac130003
-#     appId: 6667181a-7166-11ea-bc55-0242ac130003
-#     appSecret: thisIsSecret
+#   enabled: true
+#   tenantId: 5a5e106e-7166-11ea-bc55-0242ac130003   # Directory (tenant) ID
+#   appId: 6667181a-7166-11ea-bc55-0242ac130003     # Application (client) ID
+#   appSecret: thisIsSecret                          # Client secret value (use Secret manager in production)
+# When enabled, BookStack gets AZURE_TENANT, AZURE_APP_ID, AZURE_APP_SECRET,
+# AZURE_AUTO_REGISTER=true, AZURE_AUTO_CONFIRM_EMAIL=true.
+
+# -----------------------------------------------------------------------------
+# SMTP - Email (password reset, notifications)
+# -----------------------------------------------------------------------------
+# Set enabled: true and configure host, port, credentials, and from address.
+# MAIL_ENCRYPTION is set to tls by the chart.
+#
+# Using Azure for SMTP: Use Azure Communication Services (Email). In Azure:
+# create Communication Services + Email resource, provision domain, register
+# an Entra app, assign "Communication and Email Service Owner", create SMTP
+# Username linked to that app. Then set host: smtp.azurecomm.net, port: "587",
+# username: your SMTP Username, password: Entra app client secret, fromAddress
+# from your verified domain. See README "SMTP with Azure (Communication Services)".
 # smtp:
-#     enabled: true
-#     host: smtp.yourwiki.com
-#     port: "25"
-#     username: user
-#     password: thisIsPassword
-#     fromAddress: do_not_reply@yourwiki.com
-#     fromName: "My Wiki"
+#   enabled: true
+#   host: smtp.yourwiki.com
+#   port: "25"
+#   username: user
+#   password: thisIsPassword
+#   fromAddress: do_not_reply@yourwiki.com
+#   fromName: "My Wiki"
