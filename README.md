@@ -75,6 +75,8 @@ kubectl port-forward -n bookstack svc/my-wiki-bookstack 8080:8080
 
 Then open **http://localhost:8080**. BookStack’s `APP_URL` defaults to `http://localhost:8080` when neither `appHost` nor `appUrl` is set, so redirects and links work. If you use a different local port, set `appUrl` accordingly, e.g. `--set appUrl=http://localhost:9000`.
 
+**Switching to Ingress later:** You can enable a real host and Ingress anytime. Run `helm upgrade` with `ingress.enabled=true`, set `appHost` to your domain (and unset `appUrl` if you want the app to use `https://` + appHost). Add the new redirect URI in the Azure AD app registration (e.g. `https://wiki.yourdomain.com/oidc/callback`); you can keep the localhost URI or remove it. No need to reinstall.
+
 ---
 
 ## Configuration
@@ -128,8 +130,10 @@ This chart can configure BookStack to use **Azure AD** (Microsoft Entra ID) for 
 2. Go to **App registrations** → **New registration**.
 3. Set a name (e.g. "BookStack Wiki"), choose supported account types, and set **Redirect URI**:
    - Type: **Web**
-   - URL: `https://<your-appHost>/oidc/callback`  
+   - **With Ingress (public host):** `https://<your-appHost>/oidc/callback`  
      Example: `https://wiki.example.com/oidc/callback`
+   - **Port-forward only:** `http://localhost:8080/oidc/callback`  
+     (use the port you forward to, e.g. `http://localhost:9000/oidc/callback` if you use port 9000). The redirect URI is required for Azure AD login in both cases; it must match the URL where users access BookStack.
 4. Register and note:
    - **Application (client) ID** → use as `azuread.appId`
    - **Directory (tenant) ID** → use as `azuread.tenantId`
