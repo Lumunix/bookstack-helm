@@ -5,6 +5,23 @@ entries:
       sha: "25.12"
     apiVersion: v2
     appVersion: "25.12"
+    created: "2026-02-10T20:34:47.256053956Z"
+    description: Wiki application made by Bookstack and MySQL
+    digest: 186f3b27baf2d81d66c78363a3c25895daf3d93eb2ecbdff379f15167bd1e365
+    maintainers:
+    - email: lumunix@icloud.com
+      name: Lumunix
+    name: bookstack
+    sources:
+    - https://github.com/lumunix/bookstack-helm
+    type: application
+    urls:
+    - https://github.com/Lumunix/bookstack-helm/releases/download/bookstack-1.2.0/bookstack-1.2.0.tgz
+    version: 1.2.0
+  - annotations:
+      sha: "25.12"
+    apiVersion: v2
+    appVersion: "25.12"
     created: "2026-02-09T21:29:42.052054547Z"
     description: Wiki application made by Bookstack and MySQL
     digest: 6198b9557ba137dce8223e6e1ff7e1f057b874ffeef0089a392ebfceab1ff7b3
@@ -52,4 +69,4 @@ entries:
     urls:
     - https://github.com/Lumunix/bookstack-helm/releases/download/bookstack-1.0.0/bookstack-1.0.0.tgz
     version: 1.0.0
-generated: "2026-02-09T21:29:42.052066921Z"
+generated: "2026-02-10T20:34:47.256074945Z"
