@@ -1,16 +1,28 @@
-appHost: www.yourwiki.com
-appKey: base64:VGhpc0lzQW5FeGFtcGxlQXBwS2V5Q2hhbmdlVGhpcyE=
-# allowHttp: false
+# Sample: Azure AD + SMTP using Kubernetes Secret
+# Create a Secret with keys: app-key, azure-tenant-id, azure-app-id, azure-app-secret, smtp-password
+#   kubectl create secret generic bookstack-secrets -n <namespace> \
+#     --from-literal=app-key='base64:...' \
+#     --from-literal=azure-tenant-id='<tenant-id>' \
+#     --from-literal=azure-app-id='<app-id>' \
+#     --from-literal=azure-app-secret='<client-secret>' \
+#     --from-literal=smtp-password='<smtp-password>'
+
+kubernetesSecret:
+  name: "bookstack-secrets"
+
+appHost: wiki.example.com
+ingress:
+  enabled: true
+
 azuread:
-    enabled: true
-    tenantId: 5a5e106e-7166-11ea-bc55-0242ac130003
-    appId: 6667181a-7166-11ea-bc55-0242ac130003
-    appSecret: thisIsSecret
+  enabled: true
+  # tenantId, appId, appSecret come from kubernetesSecret
+
 smtp:
-    enabled: true
-    host: smtp.yourwiki.com
-    port: "25"
-    username: user
-    password: thisIsPassword
-    fromAddress: do_not_reply@yourwiki.com
-    fromName: "My Wiki"
+  enabled: true
+  host: smtp.example.com
+  port: "587"
+  username: "noreply@example.com"
+  # password comes from kubernetesSecret (key: smtp-password)
+  fromAddress: "noreply@example.com"
+  fromName: "My Wiki"

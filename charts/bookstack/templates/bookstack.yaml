@@ -37,13 +37,13 @@ spec:
           - "while ! mysqladmin ping --host={{ printf "%s-%s" .Release.Name "mysql" }} --password=secret; do sleep 5; done;"
       containers:
       - env:
-        {{- $secret := .Values.existingSecret | default dict }}
+        {{- $secret := .Values.kubernetesSecret | default dict }}
         - name: APP_KEY
           {{- if $secret.name }}
           valueFrom:
             secretKeyRef:
               name: {{ $secret.name | quote }}
-              key: {{ ($secret.appKeyKey | default "app-key") | quote }}
+              key: "app-key"
           {{- else }}
           value: {{ printf "%s" ( required "appKey is required" .Values.appKey ) | quote }}
           {{- end }}
@@ -78,7 +78,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ $secret.name | quote }}
-              key: {{ ($secret.azureTenantIdKey | default "azure-tenant-id") | quote }}
+              key: "azure-tenant-id"
           {{- else }}
           value: {{ required "azuread.tenantId is required" .Values.azuread.tenantId | quote }}
           {{- end }}
@@ -87,7 +87,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ $secret.name | quote }}
-              key: {{ ($secret.azureAppIdKey | default "azure-app-id") | quote }}
+              key: "azure-app-id"
           {{- else }}
           value: {{ required "azuread.appId is required" .Values.azuread.appId | quote }}
           {{- end }}
@@ -96,7 +96,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ $secret.name | quote }}
-              key: {{ ($secret.azureAppSecretKey | default "azure-app-secret") | quote }}
+              key: "azure-app-secret"
           {{- else }}
           value: {{ required "azuread.appSecret is required" .Values.azuread.appSecret | quote }}
           {{- end }}
@@ -119,7 +119,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ $secret.name | quote }}
-              key: {{ ($secret.smtpPasswordKey | default "smtp-password") | quote }}
+              key: "smtp-password"
           {{- else }}
           value: {{ required "smtp.password is required" .Values.smtp.password | quote }}
           {{- end }}
