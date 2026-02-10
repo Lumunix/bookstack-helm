@@ -8,6 +8,7 @@ A Helm chart for deploying [BookStack](https://www.bookstackapp.com/) — a simp
 - [Quick Start](#quick-start)
 - [Port-forward only (no host / no Ingress)](#port-forward-only-no-host--no-ingress)
 - [Configuration](#configuration)
+- [Using Kubernetes Secrets](#using-kubernetes-secrets)
 - [Azure AD (Entra ID) Setup](#azure-ad-entra-id-setup)
 - [SMTP Setup](#smtp-setup)
 - [SMTP with Azure (Communication Services)](#smtp-with-azure-communication-services)
@@ -85,7 +86,8 @@ Then open **http://localhost:8080**. BookStack’s `APP_URL` defaults to `http:/
 |--------------------|--------------------------------------------------|----------------------|
 | `appHost`          | Public hostname (e.g. `wiki.example.com`). Required only when Ingress is enabled. | Optional |
 | `appUrl`           | Full URL for links/redirects (e.g. `http://localhost:8080`). Overrides `https://` + appHost when set. | Optional; defaults to `http://localhost:8080` when no appHost |
-| `appKey`           | Application encryption key (32 chars, often `base64:...`) | **Required** |
+| `appKey`           | Application encryption key (32 chars, often `base64:...`). Not used when `existingSecret.name` is set. | **Required** unless using [Kubernetes Secrets](#using-kubernetes-secrets) |
+| `existingSecret.*` | Use an existing Kubernetes Secret for sensitive values (app key, Azure AD, SMTP password). | See [Using Kubernetes Secrets](#using-kubernetes-secrets) |
 | `ingress.enabled`  | Create Ingress resource. Set `false` for port-forward only. | `true` |
 | `allowHttp`        | Allow HTTP on Ingress (e.g. for redirect to HTTPS) | `false` |
 | `storageType`      | BookStack storage driver (e.g. `local_secure`)   | `local_secure` |
@@ -117,6 +119,111 @@ The chart deploys:
 - **MySQL 5.7** for the database
 - **PersistentVolumeClaims** for MySQL data, uploads, and storage
 - **Ingress** (only when `ingress.enabled` is true; nginx, TLS via cert-manager)
+
+---
+
+## Using Kubernetes Secrets
+
+You can store sensitive values in a Kubernetes Secret and reference it so they are never passed via `values` or `--set`.
+
+### 1. Create a Secret
+
+Create a Secret in the same namespace as the release with the keys you need. Key names can be overridden in values (see `existingSecret.*Key` in `values.yaml`).
+
+**Required for all installs:**
+
+| Secret key (default) | Description |
+|----------------------|-------------|
+| `app-key`            | BookStack `APP_KEY` (e.g. `base64:...`) |
+
+**When Azure AD is enabled (`azuread.enabled: true`):**
+
+| Secret key (default)     | Description |
+|--------------------------|-------------|
+| `azure-tenant-id`        | Azure AD Directory (tenant) ID |
+| `azure-app-id`           | Azure AD Application (client) ID |
+| `azure-app-secret`       | Azure AD client secret value |
+
+**When SMTP is enabled (`smtp.enabled: true`):**
+
+| Secret key (default) | Description |
+|----------------------|-------------|
+| `smtp-password`       | SMTP password |
+
+**Example – create the Secret with kubectl:**
+
+```bash
+kubectl create secret generic bookstack-secrets -n bookstack \
+  --from-literal=app-key='base64:YOUR_BASE64_APP_KEY'
+```
+
+With Azure AD and SMTP:
+
+```bash
+kubectl create secret generic bookstack-secrets -n bookstack \
+  --from-literal=app-key='base64:YOUR_BASE64_APP_KEY' \
+  --from-literal=azure-tenant-id='YOUR_TENANT_ID' \
+  --from-literal=azure-app-id='YOUR_APP_ID' \
+  --from-literal=azure-app-secret='YOUR_CLIENT_SECRET' \
+  --from-literal=smtp-password='YOUR_SMTP_PASSWORD'
+```
+
+**Example – from a file (e.g. for multiline or special characters):**
+
+```bash
+kubectl create secret generic bookstack-secrets -n bookstack \
+  --from-file=app-key=./app-key.txt \
+  --from-file=azure-app-secret=./azure-secret.txt
+```
+
+### 2. Point the chart at the Secret
+
+Set `existingSecret.name` to the Secret name. Do **not** set `appKey` (or `azuread.appSecret`, `azuread.tenantId`, `azuread.appId`, or `smtp.password`) in values when using the Secret for those values.
+
+```yaml
+existingSecret:
+  name: bookstack-secrets
+  # Optional: override key names if your Secret uses different keys
+  # appKeyKey: app-key
+  # azureTenantIdKey: azure-tenant-id
+  # azureAppIdKey: azure-app-id
+  # azureAppSecretKey: azure-app-secret
+  # smtpPasswordKey: smtp-password
+
+# Omit appKey when using existingSecret for APP_KEY
+# appKey: ...
+
+azuread:
+  enabled: true
+  # Omit tenantId, appId, appSecret when using existingSecret for Azure AD
+  # tenantId: ...
+  # appId: ...
+  # appSecret: ...
+
+smtp:
+  enabled: true
+  host: smtp.example.com
+  port: "587"
+  username: myuser
+  # Omit password when using existingSecret for SMTP
+  # password: ...
+  fromAddress: noreply@example.com
+  fromName: "My Wiki"
+```
+
+**Install example with Secret (port-forward only):**
+
+```bash
+kubectl create namespace bookstack
+kubectl create secret generic bookstack-secrets -n bookstack --from-literal=app-key="base64:$(openssl rand -base64 32)"
+helm upgrade --install my-wiki ./charts/bookstack -n bookstack \
+  --set existingSecret.name=bookstack-secrets \
+  --set ingress.enabled=false \
+  --set azuread.enabled=false \
+  --set smtp.enabled=false
+```
+
+The Secret must exist in the release namespace before the first install or upgrade; otherwise the Pod will stay in a pending/error state until the Secret is created.
 
 ---
 

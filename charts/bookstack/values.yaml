@@ -16,7 +16,22 @@
 # appKey: base64:VGhpc0lzQW5FeGFtcGxlQXBwS2V5Q2hhbmdlVGhpcyE=
 #   Application encryption key. Must be a 32-byte value; often stored as base64.
 #   Generate: php -r "echo 'base64:'.base64_encode(random_bytes(32));"
-#   Required. Wrong or empty key can cause "An unknown error occurred" in the app.
+#   Required when not using existingSecret. Wrong or empty key can cause "An unknown error occurred" in the app.
+
+# -----------------------------------------------------------------------------
+# Kubernetes Secret (optional) - use existing Secret for sensitive values
+# -----------------------------------------------------------------------------
+# Set existingSecret.name to a Secret name; the chart will use valueFrom.secretKeyRef
+# for APP_KEY, and (when enabled) Azure AD and SMTP password. Create the Secret
+# with the keys below (or override key names via existingSecret.*Key).
+# See README "Using Kubernetes Secrets".
+existingSecret:
+  name: ""                    # e.g. "bookstack-secrets" - leave empty to use values above
+  appKeyKey: app-key
+  azureTenantIdKey: azure-tenant-id
+  azureAppIdKey: azure-app-id
+  azureAppSecretKey: azure-app-secret
+  smtpPasswordKey: smtp-password
 
 ingress:
   enabled: true   # Set to false for port-forward only (no Ingress); then appHost can be omitted
