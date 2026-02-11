@@ -68,7 +68,9 @@ helm upgrade --install my-wiki ./charts/bookstack -n bookstack --create-namespac
   -f values.yaml
 ```
 
-For an example with Azure AD and SMTP using the Kubernetes Secret, see **[charts/bookstack/values-test.yaml](charts/bookstack/values-test.yaml)**. Use it as a starting point: `-f charts/bookstack/values-test.yaml` (after creating the Secret with the required keys).
+Example values files using Kubernetes Secret:
+- **Azure AD + SMTP:** **[charts/bookstack/values-test.yaml](charts/bookstack/values-test.yaml)** (`-f charts/bookstack/values-test.yaml`)
+- **Port-forward only + Azure AD (no SMTP):** **[charts/bookstack/values-test-portforward-azuread.yaml](charts/bookstack/values-test-portforward-azuread.yaml)** (`-f charts/bookstack/values-test-portforward-azuread.yaml`)
 
 Ensure the Secret exists before install/upgrade; otherwise the Pod will not start until it is created.
 
@@ -144,7 +146,9 @@ smtp:
 
 ## Configuration
 
-See **[charts/bookstack/values-test.yaml](charts/bookstack/values-test.yaml)** for a sample with Azure AD + SMTP.
+See sample values files:
+- **Azure AD + SMTP:** **[charts/bookstack/values-test.yaml](charts/bookstack/values-test.yaml)**
+- **Port-forward only + Azure AD (no SMTP):** **[charts/bookstack/values-test-portforward-azuread.yaml](charts/bookstack/values-test-portforward-azuread.yaml)**
 
 | Parameter           | Description |
 |--------------------|-------------|

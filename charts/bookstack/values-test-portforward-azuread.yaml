@@ -1,0 +1,25 @@
+# Sample: Port-forward only + Azure AD (SMTP disabled)
+# Create a Secret with keys: app-key, azure-tenant-id, azure-app-id, azure-app-secret
+#   APP_KEY="base64:$(openssl rand -base64 32)"
+#   kubectl create secret generic bookstack-secrets -n <namespace> \
+#     --from-literal=app-key="$APP_KEY" \
+#     --from-literal=azure-tenant-id='<tenant-id>' \
+#     --from-literal=azure-app-id='<app-id>' \
+#     --from-literal=azure-app-secret='<client-secret>'
+
+kubernetesSecret:
+  name: "bookstack-secrets"
+
+# Port-forward usage:
+#   kubectl -n <namespace> port-forward svc/<release-name>-bookstack 8080:8080
+appUrl: "http://localhost:8080"
+
+ingress:
+  enabled: false
+
+azuread:
+  enabled: true
+  # tenantId, appId, appSecret come from kubernetesSecret
+
+smtp:
+  enabled: false
