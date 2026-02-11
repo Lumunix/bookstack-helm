@@ -38,6 +38,11 @@ spec:
       containers:
       - env:
         {{- $secret := .Values.kubernetesSecret | default dict }}
+        {{- $azuread := .Values.azuread | default dict }}
+        {{- $oidc := .Values.oidc | default dict }}
+        {{- if and ($azuread.enabled) ($oidc.enabled) }}
+        {{- fail "azuread.enabled and oidc.enabled cannot both be true" }}
+        {{- end }}
         - name: APP_KEY
           {{- if $secret.name }}
           valueFrom:
@@ -55,6 +60,29 @@ spec:
           {{- else }}
           value: "http://localhost:8080"
           {{- end }}
+          {{- if $oidc.enabled }}
+        - name: AUTH_METHOD
+          value: "oidc"
+        - name: AUTH_AUTO_INITIATE
+          value: {{ ternary "true" "false" (default false $oidc.autoInitiate) | quote }}
+        - name: OIDC_NAME
+          value: {{ default "Azure AD" $oidc.name | quote }}
+        - name: OIDC_CLIENT_ID
+          value: {{ required "oidc.clientId is required" $oidc.clientId | quote }}
+        - name: OIDC_CLIENT_SECRET
+          {{- if $secret.name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $secret.name | quote }}
+              key: "oidc-client-secret"
+          {{- else }}
+          value: {{ required "oidc.clientSecret is required" $oidc.clientSecret | quote }}
+          {{- end }}
+        - name: OIDC_ISSUER
+          value: {{ required "oidc.issuer is required" $oidc.issuer | quote }}
+        - name: OIDC_ISSUER_DISCOVER
+          value: {{ ternary "true" "false" (default true $oidc.issuerDiscover) | quote }}
+          {{- end }}
         - name: DB_HOST
           value: {{ printf "%s-%s:%s" .Release.Name "mysql" "3306" | quote }}
         - name: DB_DATABASE
@@ -71,8 +99,7 @@ spec:
           value: "true"
         - name: STORAGE_TYPE
           value: {{ default "local_secure" .Values.storageType | quote }}
-          {{- if .Values.azuread }}
-          {{- if .Values.azuread.enabled }}
+          {{- if $azuread.enabled }}
         - name: AZURE_TENANT
           {{- if $secret.name }}
           valueFrom:
@@ -104,7 +131,6 @@ spec:
           value: "true"
         - name: AZURE_AUTO_CONFIRM_EMAIL
           value: "true"
-          {{- end }}
           {{- end }}
           {{- if .Values.smtp }}
           {{- if .Values.smtp.enabled }}

@@ -1,0 +1,34 @@
+# Sample: Port-forward only + OIDC (Azure-only login), SMTP disabled
+# Create a Secret with keys: app-key, oidc-client-secret
+#   APP_KEY="base64:$(openssl rand -base64 32)"
+#   kubectl create secret generic bookstack-secrets -n <namespace> \
+#     --from-literal=app-key="$APP_KEY" \
+#     --from-literal=oidc-client-secret='<oidc-client-secret>'
+
+kubernetesSecret:
+  name: "bookstack-secrets"
+
+# Port-forward usage:
+#   kubectl -n <namespace> port-forward svc/<release-name>-bookstack 8080:8080
+appUrl: "http://localhost:8080"
+
+ingress:
+  enabled: false
+
+service:
+  port: 8080
+
+oidc:
+  enabled: true
+  issuer: "https://login.microsoftonline.com/<tenant-id>/v2.0"
+  clientId: "<app-id>"
+  # clientSecret comes from kubernetesSecret key: oidc-client-secret
+  name: "Azure AD"
+  autoInitiate: true
+  issuerDiscover: true
+
+azuread:
+  enabled: false
+
+smtp:
+  enabled: false

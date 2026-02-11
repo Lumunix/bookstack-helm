@@ -17,6 +17,7 @@
 # with these exact keys; include only the ones you need):
 #
 #   app-key             — BookStack APP_KEY (required when using kubernetesSecret)
+#   oidc-client-secret  — when oidc.enabled: true (recommended)
 #   azure-tenant-id     — when azuread.enabled: true
 #   azure-app-id        — when azuread.enabled: true
 #   azure-app-secret    — when azuread.enabled: true
@@ -66,6 +67,21 @@ ingress:
 # -----------------------------------------------------------------------------
 # storageType: local_secure
 #   BookStack STORAGE_TYPE. Default: local_secure.
+
+# -----------------------------------------------------------------------------
+# OIDC – primary SSO authentication (recommended for Azure-only login)
+# -----------------------------------------------------------------------------
+# OIDC replaces BookStack's local email/password auth (AUTH_METHOD=oidc).
+# Do not enable with azuread.enabled at the same time.
+#
+# oidc:
+#   enabled: false
+#   issuer: ""           # OIDC issuer URL (must be https://...)
+#   clientId: ""         # OIDC client ID
+#   clientSecret: ""     # OIDC client secret (or in Secret as oidc-client-secret)
+#   name: "Azure AD"     # Label in login UI ("Login with <name>")
+#   autoInitiate: false  # Redirect to OIDC automatically on login page
+#   issuerDiscover: true # Use <issuer>/.well-known/openid-configuration
 
 # -----------------------------------------------------------------------------
 # Azure AD (Entra ID) – SSO
