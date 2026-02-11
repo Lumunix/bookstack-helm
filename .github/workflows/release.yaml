@@ -87,16 +87,18 @@ jobs:
             exit 1
           fi
 
-          RELEASE_TITLE="$(awk '
+          TITLE_SUFFIX="$(awk '
             BEGIN { in_title=0 }
             /^### Title$/ { in_title=1; next }
             /^### / && in_title { exit }
             in_title && NF { print; exit }
           ' changelog_section.md)"
 
-          if [[ -z "${RELEASE_TITLE}" ]]; then
-            RELEASE_TITLE="BookStack chart ${CHART_VERSION}"
+          if [[ -z "${TITLE_SUFFIX}" ]]; then
+            TITLE_SUFFIX="Chart release"
           fi
+
+          RELEASE_TITLE="${CHART_NAME}-${CHART_VERSION}: ${TITLE_SUFFIX}"
 
           awk '
             BEGIN { in_desc=0 }
