@@ -93,6 +93,7 @@ Open **http://localhost:8080**. If you use a different port, set `appUrl` accord
 | `appKey`           | Application encryption key. **Required** only when not using [kubernetesSecret](README.md#quick-start). | — |
 | `kubernetesSecret.name` | Use a Kubernetes Secret for sensitive values (fixed key names). **Preferred.** See [README](README.md). | — |
 | `ingress.enabled`  | Create Ingress. Set `false` for port-forward only. | `true` |
+| `service.port`     | Service port exposed by ClusterIP and used by Ingress backend. | `8080` |
 | `allowHttp`        | Allow HTTP on Ingress. | `false` |
 | `storageType`      | BookStack storage driver. | `local_secure` |
 | `azuread.*`        | Azure AD SSO. When using Secrets, put tenantId/appId/appSecret in the Secret; see [README](README.md). | — |

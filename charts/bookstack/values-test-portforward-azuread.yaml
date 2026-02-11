@@ -17,6 +17,9 @@ appUrl: "http://localhost:8080"
 ingress:
   enabled: false
 
+service:
+  port: 8080
+
 azuread:
   enabled: true
   # tenantId, appId, appSecret come from kubernetesSecret

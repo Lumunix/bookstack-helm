@@ -1,0 +1,22 @@
+---
+description: Keep chart version and changelog in sync
+globs: "{charts/bookstack/**,README.md,CONFIGURATION.md,CHANGELOG.md}"
+alwaysApply: false
+---
+
+# Chart version and changelog policy
+
+When you add functionality, templates, sample values files, or user-facing docs for the `bookstack` chart:
+
+- Update `charts/bookstack/Chart.yaml` `version` in the same change.
+- Update `CHANGELOG.md` in the same change with a matching `## [<version>] - YYYY-MM-DD` section.
+- Add `### Title` and `### Description` for that version so the release workflow can publish them.
+- Use at least a patch bump for additive/backward-compatible changes.
+- Keep `appVersion` unchanged unless the BookStack image/app version changes.
+- Mention the version bump in the change summary.
+
+Examples of changes that require a version bump:
+
+- New or updated templates under `charts/bookstack/templates/`
+- New values keys or sample values files under `charts/bookstack/`
+- README/CONFIGURATION additions that document new chart behavior

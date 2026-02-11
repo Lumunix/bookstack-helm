@@ -11,6 +11,7 @@ Helm chart for [BookStack](https://www.bookstackapp.com/) with MySQL on Kubernet
 - [Secrets required per functionality](#secrets-required-per-functionality)
 - [Configuration](#configuration)
 - [Other setups](#other-setups)
+- [Changelog](#changelog)
 - [Uninstall](#uninstall)
 
 ---
@@ -156,6 +157,7 @@ See sample values files:
 | `appHost`          | Public hostname; required when Ingress is enabled. |
 | `appUrl`           | Full URL for links/redirects (e.g. port-forward: `http://localhost:8080`). |
 | `ingress.enabled`  | Create Ingress. Set `false` for port-forward only. Default: `true`. |
+| `service.port`     | ClusterIP Service port used by Ingress backend. Default: `8080`. |
 | `azuread.enabled`   | Enable Azure AD login. Credentials from Secret or values; see [CONFIGURATION.md](CONFIGURATION.md). |
 | `smtp.enabled`      | Enable SMTP. Password from Secret or values; see [CONFIGURATION.md](CONFIGURATION.md). |
 
@@ -173,6 +175,12 @@ The following are documented in **[CONFIGURATION.md](CONFIGURATION.md)**:
 - **SMTP setup** — host, port, from address; inline or via Secret
 - **SMTP with Azure Communication Services** — using `smtp.azurecomm.net`
 - **Switching to Ingress later** — from port-forward to a public host
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for versioned release titles and descriptions.
 
 ---
 

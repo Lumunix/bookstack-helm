@@ -163,9 +163,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
-  - port: 8080
+  - port: {{ default 8080 .Values.service.port }}
     protocol: TCP
-    targetPort: 8080
+    targetPort: bookstack
   selector:
     app: {{ printf "%s-%s" .Release.Name "bookstack" }}
   type: ClusterIP

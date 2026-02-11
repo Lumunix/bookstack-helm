@@ -14,6 +14,9 @@ appHost: wiki.example.com
 ingress:
   enabled: true
 
+service:
+  port: 8080
+
 azuread:
   enabled: true
   # tenantId, appId, appSecret come from kubernetesSecret

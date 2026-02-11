@@ -54,6 +54,14 @@ ingress:
 #   Allow HTTP on Ingress (e.g. redirect to HTTPS). Default: false.
 
 # -----------------------------------------------------------------------------
+# Service
+# -----------------------------------------------------------------------------
+# service:
+#   port: 8080
+#     Service port exposed by ClusterIP and used by Ingress backend. Change if
+#     you want a non-default service port (container still listens on 8080).
+
+# -----------------------------------------------------------------------------
 # Storage
 # -----------------------------------------------------------------------------
 # storageType: local_secure
