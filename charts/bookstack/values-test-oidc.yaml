@@ -1,0 +1,31 @@
+# Sample: Ingress/public host + OIDC (Azure-only login), SMTP disabled
+# Create a Secret with keys: app-key, oidc-client-secret
+#   kubectl create secret generic bookstack-secrets -n <namespace> \
+#     --from-literal=app-key='base64:...' \
+#     --from-literal=oidc-client-secret='<oidc-client-secret>'
+
+kubernetesSecret:
+  name: "bookstack-secrets"
+
+appHost: wiki.example.com
+
+ingress:
+  enabled: true
+
+service:
+  port: 8080
+
+oidc:
+  enabled: true
+  issuer: "https://login.microsoftonline.com/<tenant-id>/v2.0"
+  clientId: "<app-id>"
+  # clientSecret comes from kubernetesSecret key: oidc-client-secret
+  name: "Azure AD"
+  autoInitiate: true
+  issuerDiscover: true
+
+azuread:
+  enabled: false
+
+smtp:
+  enabled: false

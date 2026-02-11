@@ -1,8 +1,8 @@
 # BookStack Helm Chart
 
-Helm chart for [BookStack](https://www.bookstackapp.com/) with MySQL on Kubernetes. Supports optional **Azure AD** (Entra ID) login and **SMTP** for email.
+Helm chart for [BookStack](https://www.bookstackapp.com/) with MySQL on Kubernetes. Supports optional **OIDC** (primary SSO, including Azure Entra ID), optional **Azure AD social login**, and **SMTP** for email.
 
-**Preferred method:** store all sensitive values (app key, Azure AD credentials, SMTP password) in a **Kubernetes Secret** and reference it via `kubernetesSecret`. Other setups (inline values, port-forward only, Azure/SMTP details) are in **[CONFIGURATION.md](CONFIGURATION.md)**.
+**Preferred method:** store all sensitive values (app key, OIDC/Azure credentials, SMTP password) in a **Kubernetes Secret** and reference it via `kubernetesSecret`. Other setups (inline values, port-forward only, OIDC/Azure/SMTP details) are in **[CONFIGURATION.md](CONFIGURATION.md)**.
 
 ## Contents
 
@@ -70,8 +70,10 @@ helm upgrade --install my-wiki ./charts/bookstack -n bookstack --create-namespac
 ```
 
 Example values files using Kubernetes Secret:
+- **Ingress/public host + OIDC/Azure-only login (no SMTP):** **[charts/bookstack/values-test-oidc.yaml](charts/bookstack/values-test-oidc.yaml)** (`-f charts/bookstack/values-test-oidc.yaml`)
 - **Azure AD + SMTP:** **[charts/bookstack/values-test.yaml](charts/bookstack/values-test.yaml)** (`-f charts/bookstack/values-test.yaml`)
 - **Port-forward only + Azure AD (no SMTP):** **[charts/bookstack/values-test-portforward-azuread.yaml](charts/bookstack/values-test-portforward-azuread.yaml)** (`-f charts/bookstack/values-test-portforward-azuread.yaml`)
+- **Port-forward only + OIDC/Azure-only login (no SMTP):** **[charts/bookstack/values-test-portforward-oidc.yaml](charts/bookstack/values-test-portforward-oidc.yaml)** (`-f charts/bookstack/values-test-portforward-oidc.yaml`)
 
 Ensure the Secret exists before install/upgrade; otherwise the Pod will not start until it is created.
 
@@ -84,6 +86,7 @@ Include **only** the secret keys for the options you enable. The chart expects t
 | Functionality       | Secret keys (default names) |
 |---------------------|-----------------------------|
 | **Base (all)**      | `app-key` — BookStack app key (e.g. `base64:...`) |
+| **OIDC only**       | `app-key` + `oidc-client-secret` (recommended) |
 | **Azure AD only**   | `app-key` + `azure-tenant-id` + `azure-app-id` + `azure-app-secret` |
 | **SMTP only**       | `app-key` + `smtp-password` |
 | **Azure AD + SMTP** | `app-key` + `azure-tenant-id` + `azure-app-id` + `azure-app-secret` + `smtp-password` |
@@ -93,10 +96,35 @@ Include **only** the secret keys for the options you enable. The chart expects t
 | Secret key (default) | Description        | When used |
 |----------------------|--------------------|-----------|
 | `app-key`            | BookStack APP_KEY  | Always (when using kubernetesSecret) |
+| `oidc-client-secret` | OIDC client secret | `oidc.enabled: true` |
 | `azure-tenant-id`    | Azure AD tenant ID | `azuread.enabled: true` |
 | `azure-app-id`       | Azure AD app ID    | `azuread.enabled: true` |
 | `azure-app-secret`   | Azure AD secret    | `azuread.enabled: true` |
 | `smtp-password`      | SMTP password      | `smtp.enabled: true` |
+
+**Example – OIDC only (Azure-only login, no SMTP):**
+
+```bash
+kubectl create secret generic bookstack-secrets -n bookstack \
+  --from-literal=app-key='base64:YOUR_APP_KEY' \
+  --from-literal=oidc-client-secret='YOUR_OIDC_CLIENT_SECRET'
+```
+
+```yaml
+kubernetesSecret:
+  name: bookstack-secrets
+oidc:
+  enabled: true
+  issuer: "https://login.microsoftonline.com/<tenant-id>/v2.0"
+  clientId: "YOUR_APP_ID"
+  # clientSecret from Secret key: oidc-client-secret
+  name: "Azure AD"
+  autoInitiate: true
+azuread:
+  enabled: false
+smtp:
+  enabled: false
+```
 
 **Example – Azure AD only (no SMTP):**
 
@@ -148,8 +176,10 @@ smtp:
 ## Configuration
 
 See sample values files:
+- **Ingress/public host + OIDC/Azure-only login (no SMTP):** **[charts/bookstack/values-test-oidc.yaml](charts/bookstack/values-test-oidc.yaml)**
 - **Azure AD + SMTP:** **[charts/bookstack/values-test.yaml](charts/bookstack/values-test.yaml)**
 - **Port-forward only + Azure AD (no SMTP):** **[charts/bookstack/values-test-portforward-azuread.yaml](charts/bookstack/values-test-portforward-azuread.yaml)**
+- **Port-forward only + OIDC/Azure-only login (no SMTP):** **[charts/bookstack/values-test-portforward-oidc.yaml](charts/bookstack/values-test-portforward-oidc.yaml)**
 
 | Parameter           | Description |
 |--------------------|-------------|
@@ -158,6 +188,7 @@ See sample values files:
 | `appUrl`           | Full URL for links/redirects (e.g. port-forward: `http://localhost:8080`). |
 | `ingress.enabled`  | Create Ingress. Set `false` for port-forward only. Default: `true`. |
 | `service.port`     | ClusterIP Service port used by Ingress backend. Default: `8080`. |
+| `oidc.enabled`      | Enable OIDC as primary authentication (`AUTH_METHOD=oidc`), which replaces local email/password login. |
 | `azuread.enabled`   | Enable Azure AD login. Credentials from Secret or values; see [CONFIGURATION.md](CONFIGURATION.md). |
 | `smtp.enabled`      | Enable SMTP. Password from Secret or values; see [CONFIGURATION.md](CONFIGURATION.md). |
 
@@ -171,6 +202,7 @@ The following are documented in **[CONFIGURATION.md](CONFIGURATION.md)**:
 
 - **Using values instead of Secrets** — passing `appKey` and other secrets via values or `--set` (not recommended for production)
 - **Port-forward only** — no Ingress, no host; access via `kubectl port-forward`
+- **OIDC (primary auth)** — Azure-only login via OIDC (`AUTH_METHOD=oidc`)
 - **Azure AD app registration** — step-by-step in Azure Portal (redirect URI, client secret, API permissions)
 - **SMTP setup** — host, port, from address; inline or via Secret
 - **SMTP with Azure Communication Services** — using `smtp.azurecomm.net`

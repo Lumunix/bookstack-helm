@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.3.5] - 2026-02-11
+### Title
+Add Ingress OIDC sample values file
+
+### Description
+- Added `charts/bookstack/values-test-oidc.yaml` for public host/Ingress deployments using OIDC as primary authentication (Azure-only login) with SMTP disabled.
+- Updated `README.md` and `CONFIGURATION.md` to reference both Ingress and port-forward OIDC sample values files.
+
+## [1.3.4] - 2026-02-11
+### Title
+Add OIDC primary authentication support
+
+### Description
+- Added `oidc` chart configuration and BookStack deployment env wiring for primary OIDC authentication (`AUTH_METHOD=oidc`), including auto-initiate and issuer discovery options.
+- Added a guard to prevent enabling both `oidc.enabled` and `azuread.enabled` simultaneously.
+- Added `charts/bookstack/values-test-portforward-oidc.yaml` and updated `README.md`/`CONFIGURATION.md` with OIDC Azure-only login setup and secret key guidance.
+
 ## [1.3.3] - 2026-02-11
 ### Title
 Changelog automation and values test updates

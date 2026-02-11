@@ -9,6 +9,7 @@ This document covers **optional configuration** and **alternative setups** (e.g.
 - [Alternative: Using values instead of Secrets](#alternative-using-values-instead-of-secrets)
 - [Port-forward only (no host / no Ingress)](#port-forward-only-no-host--no-ingress)
 - [Configuration reference](#configuration-reference)
+- [OIDC (primary auth, Azure-only login)](#oidc-primary-auth-azure-only-login)
 - [Azure AD (Entra ID) app registration](#azure-ad-entra-id-app-registration)
 - [SMTP setup (inline values)](#smtp-setup-inline-values)
 - [SMTP with Azure Communication Services](#smtp-with-azure-communication-services)
@@ -96,10 +97,44 @@ Open **http://localhost:8080**. If you use a different port, set `appUrl` accord
 | `service.port`     | Service port exposed by ClusterIP and used by Ingress backend. | `8080` |
 | `allowHttp`        | Allow HTTP on Ingress. | `false` |
 | `storageType`      | BookStack storage driver. | `local_secure` |
-| `azuread.*`        | Azure AD SSO. When using Secrets, put tenantId/appId/appSecret in the Secret; see [README](README.md). | — |
+| `oidc.*`           | OIDC as primary auth (`AUTH_METHOD=oidc`), replacing local email/password login. Use Secret key `oidc-client-secret` for client secret. | — |
+| `azuread.*`        | Azure AD social login. This keeps local email/password available. Do not combine with `oidc.enabled=true`. | — |
 | `smtp.*`           | SMTP for email. When using Secrets, put password in the Secret; see [README](README.md). | — |
 
 The chart deploys: BookStack (solidnerd/bookstack:25.12), MySQL 5.7, PVCs for data/uploads/storage, and optionally an Ingress (nginx + cert-manager).
+
+---
+
+## OIDC (primary auth, Azure-only login)
+
+Use this mode when you want Azure (or another OIDC provider) to be the only login method.
+
+- Enables BookStack `AUTH_METHOD=oidc` (replaces local email/password auth).
+- Optional `oidc.autoInitiate: true` sends users directly to the OIDC provider.
+- Do not set `azuread.enabled: true` at the same time.
+
+Example values:
+
+```yaml
+oidc:
+  enabled: true
+  issuer: "https://login.microsoftonline.com/<tenant-id>/v2.0"
+  clientId: "YOUR_APP_ID"
+  # clientSecret: "..." # or put in Kubernetes Secret as oidc-client-secret
+  name: "Azure AD"
+  autoInitiate: true
+  issuerDiscover: true
+```
+
+When using Kubernetes Secret (recommended), include key `oidc-client-secret` and set `kubernetesSecret.name`.
+
+OIDC callback URI for your identity provider:
+- `https://<your-appHost>/oidc/callback` (Ingress)
+- `http://localhost:8080/oidc/callback` (port-forward)
+
+Sample values files:
+- Ingress/public host: `charts/bookstack/values-test-oidc.yaml`
+- Port-forward only: `charts/bookstack/values-test-portforward-oidc.yaml`
 
 ---
 
