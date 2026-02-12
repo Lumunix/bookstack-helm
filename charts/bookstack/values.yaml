@@ -111,3 +111,13 @@ ingress:
 #   password: ""       # Or in Secret as smtp-password
 #   fromAddress: ""
 #   fromName: ""
+
+# -----------------------------------------------------------------------------
+# Mermaid Viewer (unsupported hack)
+# -----------------------------------------------------------------------------
+# Enables interactive Mermaid diagrams on page view. See HACKS.md.
+#
+mermaidViewer:
+  enabled: false
+# themeName: "mermaid_theme"
+#   Theme folder name and APP_THEME. Default: mermaid_theme

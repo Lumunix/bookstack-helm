@@ -35,6 +35,24 @@ spec:
           - bash
           - "-c"
           - "while ! mysqladmin ping --host={{ printf "%s-%s" .Release.Name "mysql" }} --password=secret; do sleep 5; done;"
+      {{- if .Values.mermaidViewer.enabled }}
+      - image: busybox
+        name: mermaid-hack-init
+        command:
+          - sh
+          - "-c"
+          - |
+            mkdir -p /theme/layouts/parts /theme/public
+            cp /config/base-body-start.blade.php /theme/layouts/parts/
+            cp /config/mermaid-viewer.css /config/mermaid-viewer.js /theme/public/
+            chown -R 33:33 /theme
+        volumeMounts:
+        - mountPath: /config
+          name: mermaid-hack-config
+          readOnly: true
+        - mountPath: /theme
+          name: mermaid-theme
+      {{- end }}
       containers:
       - env:
         {{- $secret := .Values.kubernetesSecret | default dict }}
@@ -99,6 +117,10 @@ spec:
           value: "true"
         - name: STORAGE_TYPE
           value: {{ default "local_secure" .Values.storageType | quote }}
+          {{- if .Values.mermaidViewer.enabled }}
+        - name: APP_THEME
+          value: {{ default "mermaid_theme" .Values.mermaidViewer.themeName | quote }}
+          {{- end }}
           {{- if $azuread.enabled }}
         - name: AZURE_TENANT
           {{- if $secret.name }}
@@ -172,6 +194,10 @@ spec:
           name: bookstack-uploads
         - mountPath: /var/www/bookstack/storage/uploads
           name: bookstack-storage
+        {{- if .Values.mermaidViewer.enabled }}
+        - mountPath: /var/www/bookstack/themes/{{ default "mermaid_theme" .Values.mermaidViewer.themeName }}
+          name: mermaid-theme
+        {{- end }}
       volumes:
       - name: bookstack-uploads
         persistentVolumeClaim:
@@ -179,6 +205,13 @@ spec:
       - name: bookstack-storage
         persistentVolumeClaim:
           claimName: {{ printf "%s-%s" .Release.Name "storage" }}
+      {{- if .Values.mermaidViewer.enabled }}
+      - name: mermaid-hack-config
+        configMap:
+          name: {{ printf "%s-%s" .Release.Name "mermaid-hack" }}
+      - name: mermaid-theme
+        emptyDir: {}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service

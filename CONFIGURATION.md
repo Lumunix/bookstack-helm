@@ -100,6 +100,7 @@ Open **http://localhost:8080**. If you use a different port, set `appUrl` accord
 | `oidc.*`           | OIDC as primary auth (`AUTH_METHOD=oidc`), replacing local email/password login. Use Secret key `oidc-client-secret` for client secret. | — |
 | `azuread.*`        | Azure AD social login. This keeps local email/password available. Do not combine with `oidc.enabled=true`. | — |
 | `smtp.*`           | SMTP for email. When using Secrets, put password in the Secret; see [README](README.md). | — |
+| `mermaidViewer.*`  | Enable Mermaid Viewer hack for interactive diagrams in pages. Unsupported; see [HACKS.md](HACKS.md#mermaid-viewer). | `enabled: false` |
 
 The chart deploys: BookStack (solidnerd/bookstack:25.12), MySQL 5.7, PVCs for data/uploads/storage, and optionally an Ingress (nginx + cert-manager).
 

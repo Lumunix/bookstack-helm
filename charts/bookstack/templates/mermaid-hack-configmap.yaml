@@ -1,0 +1,15 @@
+{{- if .Values.mermaidViewer.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-%s" .Release.Name "mermaid-hack" }}
+  labels:
+    app: {{ printf "%s-%s" .Release.Name "bookstack" }}
+data:
+  base-body-start.blade.php: |
+{{ .Files.Get "mermaid-hack/base-body-start.blade.php" | indent 4 }}
+  mermaid-viewer.css: |
+{{ .Files.Get "mermaid-hack/mermaid-viewer.css" | indent 4 }}
+  mermaid-viewer.js: |
+{{ .Files.Get "mermaid-hack/mermaid-viewer.js" | indent 4 }}
+{{- end }}

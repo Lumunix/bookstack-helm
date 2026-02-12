@@ -2,7 +2,7 @@
 
 Helm chart for [BookStack](https://www.bookstackapp.com/) with MySQL on Kubernetes. Supports optional **OIDC** (primary SSO, including Azure Entra ID), optional **Azure AD social login**, and **SMTP** for email.
 
-**Preferred method:** store all sensitive values (app key, OIDC/Azure credentials, SMTP password) in a **Kubernetes Secret** and reference it via `kubernetesSecret`. Other setups (inline values, port-forward only, OIDC/Azure/SMTP details) are in **[CONFIGURATION.md](CONFIGURATION.md)**.
+**Preferred method:** store all sensitive values (app key, OIDC/Azure credentials, SMTP password) in a **Kubernetes Secret** and reference it via `kubernetesSecret`. Other setups (inline values, port-forward only, OIDC/Azure/SMTP details) are in **[CONFIGURATION.md](CONFIGURATION.md)**. Unsupported hacks (e.g. Mermaid Viewer) are in **[HACKS.md](HACKS.md)**.
 
 ## Contents
 
@@ -11,6 +11,7 @@ Helm chart for [BookStack](https://www.bookstackapp.com/) with MySQL on Kubernet
 - [Secrets required per functionality](#secrets-required-per-functionality)
 - [Configuration](#configuration)
 - [Other setups](#other-setups)
+- [Hacks](#hacks)
 - [Changelog](#changelog)
 - [Uninstall](#uninstall)
 
@@ -188,6 +189,7 @@ See sample values files:
 | `appUrl`           | Full URL for links/redirects (e.g. port-forward: `http://localhost:8080`). |
 | `ingress.enabled`  | Create Ingress. Set `false` for port-forward only. Default: `true`. |
 | `service.port`     | ClusterIP Service port used by Ingress backend. Default: `8080`. |
+| `mermaidViewer.enabled` | Enable Mermaid Viewer hack for interactive diagrams. See [HACKS.md](HACKS.md#mermaid-viewer). Default: `false`. |
 | `oidc.enabled`      | Enable OIDC as primary authentication (`AUTH_METHOD=oidc`), which replaces local email/password login. |
 | `azuread.enabled`   | Enable Azure AD login. Credentials from Secret or values; see [CONFIGURATION.md](CONFIGURATION.md). |
 | `smtp.enabled`      | Enable SMTP. Password from Secret or values; see [CONFIGURATION.md](CONFIGURATION.md). |
@@ -207,6 +209,12 @@ The following are documented in **[CONFIGURATION.md](CONFIGURATION.md)**:
 - **SMTP setup** — host, port, from address; inline or via Secret
 - **SMTP with Azure Communication Services** — using `smtp.azurecomm.net`
 - **Switching to Ingress later** — from port-forward to a public host
+
+---
+
+## Hacks
+
+**[HACKS.md](HACKS.md)** documents unsupported BookStack customizations built into this chart (e.g. [Mermaid Viewer](HACKS.md#mermaid-viewer) for interactive diagrams). Apply at your own risk.
 
 ---
 

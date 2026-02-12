@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.3.7] - 2026-02-12
+### Title
+Separate HACKS.md and link from README
+
+### Description
+- Created HACKS.md for unsupported BookStack customizations (Mermaid Viewer).
+- Removed hack documentation from CONFIGURATION.md; config table now links to HACKS.md.
+- Added Hacks section to README with link to HACKS.md.
+
+## [1.3.6] - 2026-02-12
+### Title
+Mermaid Viewer hack integration
+
+### Description
+- Added optional Mermaid Viewer hack integration for interactive Mermaid diagrams on page view.
+- New `mermaidViewer.enabled` and `mermaidViewer.themeName` values.
+- Hack files (layout override, CSS, JS) bundled in chart and injected via ConfigMap and init container.
+- Documented in HACKS.md with usage and caveats.
+
 ## [1.3.5] - 2026-02-11
 ### Title
 Add Ingress OIDC sample values file
